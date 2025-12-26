@@ -26,12 +26,6 @@ const envSchema = z.object({
 
     // Logging
     LOG_LEVEL: z.enum(LogLevel).default(LogLevel.DEBUG),
-
-    // Optional integrations
-    CLOUDINARY_CLOUD_NAME: z.string().optional(),
-    CLOUDINARY_API_KEY: z.string().optional(),
-    CLOUDINARY_API_SECRET: z.string().optional(),
-    REDIS_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
