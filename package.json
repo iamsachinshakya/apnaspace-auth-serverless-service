@@ -24,7 +24,6 @@
     "type": "git",
     "url": "git+https://github.com/yourusername/auth-serverless-service.git"
   },
-  "packageManager": "pnpm@10.18.3",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
