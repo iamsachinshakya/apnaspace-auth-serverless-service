@@ -1,5 +1,5 @@
 import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
-import { IAuthDashboard, IChangePassword, ILoginCredentials, IRegisterData, IResetPassword } from "../models/auth.dto";
+import { IAuthDashboard, IChangePassword, ILoginCredentials, IRegisterData, IResetPassword, IUpdateAuth } from "../models/auth.dto";
 import { IAuthEntity } from "../models/auth.entity";
 
 /**
@@ -7,6 +7,21 @@ import { IAuthEntity } from "../models/auth.entity";
  * Defines business logic methods for authentication and user management.
  */
 export interface IAuthService {
+
+
+    /**
+   * Update auth details 
+   * @param userId - User ID
+   * @param body - Partial auth data data to update
+   * @returns Updated user dashboard auth data
+   */
+    updateAuth(userId: string, body: IUpdateAuth): Promise<Partial<IAuthDashboard>>;
+    /**
+     * Delete a auth user
+     * @param userId - User ID
+     * @returns True if deletion was successful
+     */
+    deleteAuth(userId: string): Promise<boolean>;
 
     /**
      * Fetch all Auth users with optional pagination, search, and sorting

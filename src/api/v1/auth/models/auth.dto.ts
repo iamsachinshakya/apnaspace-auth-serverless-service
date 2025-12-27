@@ -30,6 +30,15 @@ export interface IAuthUser {
     isVerified: boolean;
 }
 
+export interface IUpdateAuth {
+    username?: string;
+    email?: string;       // UNIQUE, login identifier
+    role?: UserRole;
+    status?: AuthStatus;
+    isVerified?: boolean;
+    password?: string;
+}
+
 
 export interface IAuthDashboard {
     id: string;

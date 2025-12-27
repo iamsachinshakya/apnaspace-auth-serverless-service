@@ -7,6 +7,21 @@ import { Request, Response } from "express";
 export interface IAuthController {
 
     /**
+        * update auth user by ID
+        * @route GET /api/v1/users/:id
+        * @access Private (Admin)
+        */
+    updateById(req: Request, res: Response): Promise<Response>;
+
+    /**
+        * delete auth user by ID
+        * @route GET /api/v1/users/:id
+        * @access Private (Admin or self)
+        */
+    deleteById(req: Request, res: Response): Promise<Response>;
+
+
+    /**
      * Get all Auth users
      * @route GET /api/v1/users
      * @access Private (Admin only)
@@ -44,14 +59,6 @@ export interface IAuthController {
      * @returns A Promise resolving to the HTTP response.
      */
     refreshAccessToken(req: Request, res: Response): Promise<Response>;
-
-    /**
-     * Change the User password.
-     * @param req - Express request containing old and new passwords.
-     * @param res - Express response confirming the password change.
-     * @returns A Promise resolving to the HTTP response.
-     */
-    changeUserPassword(req: Request, res: Response): Promise<Response>;
 
     /**
      * Change the own password of the logout user.

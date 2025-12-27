@@ -1,5 +1,5 @@
 import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
-import { IAuthDashboard } from "../models/auth.dto";
+import { IAuthDashboard, IUpdateAuth } from "../models/auth.dto";
 import { IAuthEntity } from "../models/auth.entity";
 
 /**
@@ -60,7 +60,12 @@ export interface IAuthRepository {
      */
     updateById(
         id: string,
-        data: Partial<IAuthEntity>
+        data: Partial<IUpdateAuth>
+    ): Promise<IAuthEntity | null>;
+
+    updateRefreshTokenId(
+        id: string,
+        data: { refreshToken: string, updateDate: Date }
     ): Promise<IAuthEntity | null>;
 
     /**

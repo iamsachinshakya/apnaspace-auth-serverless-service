@@ -22,6 +22,33 @@ const authRepository = new AuthRepository();
 const authService = new AuthService(authRepository);
 const authController = new AuthController(authService);
 
+
+/**
+ * @route   DELETE /api/v1/auth/users/:id
+ * @desc    Delete auth user
+ * @access  Private (Admin only)
+ */
+authRouter.delete(
+  "/users/:id",
+  authenticate,
+  // authorize(PERMISSIONS.USER.DELETE),
+  // authorizeUserAction(),
+  asyncHandler(authController.deleteById.bind(authController))
+);
+
+/**
+ * @route   PATCH /api/v1/auth/users/:id
+ * @desc    UPDATE auth user
+ * @access  Private (Admin only)
+ */
+authRouter.patch(
+  "/users/:id",
+  authenticate,
+  // authorize(PERMISSIONS.USER.UPDATE),
+  // authorizeUserAction(),
+  asyncHandler(authController.updateById.bind(authController))
+);
+
 /**
  * @route   GET /api/v1/auth/users
  * @desc    Get all users
@@ -88,17 +115,4 @@ authRouter.post(
   "/reset-password",
   validateBody(resetPasswordSchema),
   asyncHandler(authController.resetPassword.bind(authController))
-);
-
-/**
- * Admin resets user password
- * @route POST /api/v1/auth/users/:id/change-password
- */
-authRouter.post(
-  "/users/:id/change-password",
-  authenticate,
-  authorize(PERMISSIONS.AUTH.CHANGE_PASSWORD),
-  authorizeUserAction(),
-  validateBody(changeUserPasswordSchema),
-  asyncHandler(authController.changeUserPassword.bind(authController))
 );

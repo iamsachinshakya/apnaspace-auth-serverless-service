@@ -8,7 +8,6 @@ import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
 import { IAuthDashboard } from "../models/auth.dto";
 
 export class AuthRepository implements IAuthRepository {
-
     /**
      * Convert mongoose document → domain entity
      */
@@ -167,7 +166,6 @@ export class AuthRepository implements IAuthRepository {
     }
 
 
-
     async findByEmail(email: string): Promise<IAuthEntity | null> {
         try {
             const user = await AuthUser.findOne({ email })
@@ -230,7 +228,7 @@ export class AuthRepository implements IAuthRepository {
         try {
             const user = await AuthUser.findByIdAndUpdate(
                 id,
-                { ...data },
+                { ...data, refreshToken: null },
                 { new: true }
             ).lean();
 
@@ -249,6 +247,21 @@ export class AuthRepository implements IAuthRepository {
             return user ? this.normalize(user) : null;
         } catch (err) {
             logger.error(`❌ Failed to delete user id: ${id}`, err);
+            return null;
+        }
+    }
+
+    async updateRefreshTokenId(id: string, data: { refreshToken: string; updateDate: Date; }): Promise<IAuthEntity | null> {
+        try {
+            const user = await AuthUser.findByIdAndUpdate(
+                id,
+                { ...data },
+                { new: true }
+            ).lean();
+
+            return user ? this.normalize(user) : null;
+        } catch (err) {
+            logger.error(`❌ Failed to update user id: ${id}`, err);
             return null;
         }
     }

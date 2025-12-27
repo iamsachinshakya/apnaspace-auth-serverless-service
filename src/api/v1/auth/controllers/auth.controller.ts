@@ -7,9 +7,31 @@ import { IAuthController } from "./auth.controller.interface";
 import { IAuthService } from "../services/auth.service.interface";
 import { IQueryParams } from "../../common/models/common.dto";
 import { PAGINATION_PAGE_LIMIT } from "../../common/constants/constants";
+import { IUpdateAuth } from "../models/auth.dto";
 
 export class AuthController implements IAuthController {
   constructor(private readonly authService: IAuthService) { }
+
+
+  async updateById(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    const updates: IUpdateAuth = req.body;
+
+    if (!id) throw new ApiError("Auth ID is required", 400, ErrorCode.BAD_REQUEST);
+    if (!updates || Object.keys(updates).length === 0) throw new ApiError("No update data provided", 400, ErrorCode.BAD_REQUEST);
+
+    const updated = await this.authService.updateAuth(id, updates);
+
+    return ApiResponse.success(res, "Account details updated successfully", updated);
+  }
+
+  async deleteById(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    if (!id) throw new ApiError("Auth ID is required", 400, ErrorCode.BAD_REQUEST);
+
+    await this.authService.deleteAuth(id);
+    return ApiResponse.success(res, "User deleted successfully", null, 200);
+  }
 
 
   async getAll(req: Request, res: Response): Promise<Response> {
@@ -80,17 +102,6 @@ export class AuthController implements IAuthController {
     res.cookie("accessToken", accessToken, secureCookieOptions);
 
     return ApiResponse.success(res, "Access token refreshed successfully");
-  }
-
-  async changeUserPassword(req: Request, res: Response): Promise<Response> {
-    const userId = req.params.id;
-    const { password } = req.body;
-
-    if (!userId) {
-      throw new ApiError("User ID missing in request params", 400, ErrorCode.BAD_REQUEST);
-    }
-    await this.authService.changeUserPassword({ password }, userId);
-    return ApiResponse.success(res, "Password changed successfully");
   }
 
   async resetPassword(req: Request, res: Response): Promise<Response> {

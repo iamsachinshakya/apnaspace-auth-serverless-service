@@ -8,7 +8,8 @@ import {
   IChangePassword,
   ILoginCredentials,
   IRegisterData,
-  IResetPassword
+  IResetPassword,
+  IUpdateAuth
 } from "../models/auth.dto";
 import { AuthStatus, IAuthEntity, UserRole } from "../models/auth.entity";
 import { IAuthRepository } from "../repositories/auth.repository.interface";
@@ -28,6 +29,170 @@ import { IAuthService } from "./auth.service.interface";
  */
 export class AuthService implements IAuthService {
   constructor(private readonly authRepository: IAuthRepository) { }
+
+
+  /* -------------------------------------------------------------------------- */
+  /*                               UPDATE AUTH USER                              */
+  /* -------------------------------------------------------------------------- */
+  async updateAuth(
+    userId: string,
+    body: IUpdateAuth
+  ): Promise<Partial<IAuthDashboard>> {
+    if (!userId) {
+      throw new ApiError(
+        "User ID is required",
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    const existingUser = await this.authRepository.findById(userId);
+    if (!existingUser) {
+      throw new ApiError(
+        "User not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
+
+    const allowedFields: (keyof IUpdateAuth)[] = [
+      "username",
+      "email",
+      "role",
+      "status",
+      "isVerified",
+      "password",
+    ];
+
+    const updates: Partial<IAuthEntity> = {};
+
+    for (const key of allowedFields) {
+      const value = body[key];
+
+      if (value === undefined || value === null) continue;
+
+      if (typeof value === "string") {
+        if (!value.trim()) continue;
+        updates[key] = value.trim() as any;
+        continue;
+      }
+
+      updates[key] = value as any;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      throw new ApiError(
+        "At least one valid field is required to update",
+        400,
+        ErrorCode.BAD_REQUEST
+      );
+    }
+
+    /* ---------------- UNIQUE CHECKS ---------------- */
+
+    if (
+      updates.email &&
+      updates.email !== existingUser.email
+    ) {
+      const emailExists = await this.authRepository.findByEmail(
+        updates.email
+      );
+      if (emailExists) {
+        throw new ApiError(
+          "Email already exists",
+          409,
+          ErrorCode.USER_ALREADY_EXISTS
+        );
+      }
+    }
+
+    if (
+      updates.username &&
+      updates.username !== existingUser.username
+    ) {
+      const usernameExists =
+        await this.authRepository.findByUsername(
+          updates.username
+        );
+      if (usernameExists) {
+        throw new ApiError(
+          "Username already exists",
+          409,
+          ErrorCode.USER_ALREADY_EXISTS
+        );
+      }
+    }
+
+    /* ---------------- PASSWORD ---------------- */
+
+    if (updates.password) {
+      const hashed = await hashPassword(updates.password);
+      if (!hashed) {
+        throw new ApiError(
+          "Password hashing failed",
+          500,
+          ErrorCode.PASSWORD_HASH_FAILED
+        );
+      }
+      updates.password = hashed;
+    }
+
+    updates.updatedAt = new Date();
+
+    const updatedUser = await this.authRepository.updateById(
+      userId,
+      updates
+    );
+
+    if (!updatedUser) {
+      throw new ApiError(
+        "Failed to update user",
+        500,
+        ErrorCode.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    return this.parseDashboardData(updatedUser);
+  }
+
+
+
+  /* -------------------------------------------------------------------------- */
+  /*                               DELETE AUTH USER                              */
+  /* -------------------------------------------------------------------------- */
+  async deleteAuth(userId: string): Promise<boolean> {
+    if (!userId) {
+      throw new ApiError(
+        "User ID is required",
+        400,
+        ErrorCode.VALIDATION_ERROR
+      );
+    }
+
+    const existingUser = await this.authRepository.findById(userId);
+    if (!existingUser) {
+      throw new ApiError(
+        "User not found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
+
+    const deleted = await this.authRepository.deleteById(userId);
+
+    console.log("deleted =>", deleted);
+
+    if (!deleted) {
+      throw new ApiError(
+        "Failed to delete user",
+        500,
+        ErrorCode.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    return true;
+  }
+
 
 
 
@@ -230,7 +395,7 @@ export class AuthService implements IAuthService {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken({ id: user.id });
 
-    const updateRes = await this.authRepository.updateById(user.id, { refreshToken, updatedAt: new Date() });
+    const updateRes = await this.authRepository.updateRefreshTokenId(user.id, { refreshToken, updateDate: new Date() });
     if (!updateRes) throw new ApiError("Fail to update generate token!", 500, ErrorCode.INTERNAL_SERVER_ERROR)
     return { accessToken, refreshToken };
   }
