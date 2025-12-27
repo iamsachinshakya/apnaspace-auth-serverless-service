@@ -240,16 +240,33 @@ export class AuthRepository implements IAuthRepository {
     }
 
     async deleteById(id: string): Promise<IAuthEntity | null> {
-        try {
-            const user = await AuthUser.findByIdAndDelete(id)
-                .lean();
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-            return user ? this.normalize(user) : null;
+        try {
+            const authUser = await AuthUser.findByIdAndDelete(id, { session }).lean();
+
+            if (!authUser) {
+                await session.abortTransaction();
+                session.endSession();
+                return null;
+            }
+
+            await User.findByIdAndDelete(id, { session });
+
+            await session.commitTransaction();
+            session.endSession();
+
+            return this.normalize(authUser);
         } catch (err) {
-            logger.error(`❌ Failed to delete user id: ${id}`, err);
+            await session.abortTransaction();
+            session.endSession();
+
+            logger.error(`❌ Failed to delete user + auth id: ${id}`, err);
             return null;
         }
     }
+
 
     async updateRefreshTokenId(id: string, data: { refreshToken: string; updateDate: Date; }): Promise<IAuthEntity | null> {
         try {

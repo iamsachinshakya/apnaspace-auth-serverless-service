@@ -4,7 +4,7 @@ import {
   registerUserSchema,
   loginUserSchema,
   resetPasswordSchema,
-  changeUserPasswordSchema,
+  updateAuthSchema,
 } from "../validations/auth.validation";
 import { asyncHandler } from "../../common/utils/asyncHandler";
 import { AuthController } from "../controllers/auth.controller";
@@ -22,7 +22,6 @@ const authRepository = new AuthRepository();
 const authService = new AuthService(authRepository);
 const authController = new AuthController(authService);
 
-
 /**
  * @route   DELETE /api/v1/auth/users/:id
  * @desc    Delete auth user
@@ -31,8 +30,8 @@ const authController = new AuthController(authService);
 authRouter.delete(
   "/users/:id",
   authenticate,
-  // authorize(PERMISSIONS.USER.DELETE),
-  // authorizeUserAction(),
+  authorize(PERMISSIONS.AUTH.DELETE),
+  authorizeUserAction(),
   asyncHandler(authController.deleteById.bind(authController))
 );
 
@@ -44,8 +43,9 @@ authRouter.delete(
 authRouter.patch(
   "/users/:id",
   authenticate,
-  // authorize(PERMISSIONS.USER.UPDATE),
-  // authorizeUserAction(),
+  authorize(PERMISSIONS.AUTH.UPDATE),
+  authorizeUserAction(),
+  validateBody(updateAuthSchema),
   asyncHandler(authController.updateById.bind(authController))
 );
 
@@ -57,7 +57,7 @@ authRouter.patch(
 authRouter.get(
   "/users",
   authenticate,
-  authorize(PERMISSIONS.USER.READ),
+  authorize(PERMISSIONS.AUTH.READ_ALL),
   asyncHandler(authController.getAll.bind(authController))
 );
 

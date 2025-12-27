@@ -2,7 +2,11 @@ import { UserRole } from "../../auth/models/auth.entity";
 
 export const PERMISSIONS = {
     AUTH: {
-        CHANGE_PASSWORD: "user:change_password",
+        CHANGE_PASSWORD: "auth:change_password",
+        UPDATE: "auth:update",
+        DELETE: "auth:delete",
+        READ: "auth:read",
+        READ_ALL: "auth:read_all"
     },
     USER: {
         CREATE: "user:create",
@@ -60,10 +64,13 @@ export const RolePermissions: Record<UserRole, Set<string>> = {
         PERMISSIONS.BLOG.READ,
         PERMISSIONS.COMMENT.CREATE,
         PERMISSIONS.COMMENT.READ,
+        PERMISSIONS.AUTH.CHANGE_PASSWORD
+
     ]),
     [UserRole.USER]: new Set([
         PERMISSIONS.BLOG.READ,
         PERMISSIONS.COMMENT.CREATE,
         PERMISSIONS.COMMENT.READ,
+        PERMISSIONS.AUTH.CHANGE_PASSWORD
     ]),
 };
