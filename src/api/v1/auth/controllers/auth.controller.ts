@@ -5,9 +5,26 @@ import { ErrorCode } from "../../common/constants/errorCodes";
 import { secureCookieOptions } from "../utils/auth.util";
 import { IAuthController } from "./auth.controller.interface";
 import { IAuthService } from "../services/auth.service.interface";
+import { IQueryParams } from "../../common/models/common.dto";
+import { PAGINATION_PAGE_LIMIT } from "../../common/constants/constants";
 
 export class AuthController implements IAuthController {
   constructor(private readonly authService: IAuthService) { }
+
+
+  async getAll(req: Request, res: Response): Promise<Response> {
+    const query: IQueryParams = {
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || PAGINATION_PAGE_LIMIT,
+      search: (req.query.search as string) || "",
+      sortBy: (req.query.sortBy as string) || "createdAt",
+      sortOrder: (req.query.sortOrder as "asc" | "desc") || "desc",
+    };
+
+    const users = await this.authService.getAllUsers(query);
+
+    return ApiResponse.success(res, "Auth Users fetched successfully", users);
+  }
 
   async register(req: Request, res: Response): Promise<Response> {
     const user = await this.authService.registerUser(req.body);

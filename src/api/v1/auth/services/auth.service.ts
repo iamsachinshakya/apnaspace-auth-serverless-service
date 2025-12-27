@@ -1,7 +1,9 @@
 import { env } from "../../../../app/config/env";
 import { ErrorCode } from "../../common/constants/errorCodes";
+import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
 import { ApiError } from "../../common/utils/apiError";
 import {
+  IAuthDashboard,
   IAuthUser,
   IChangePassword,
   ILoginCredentials,
@@ -26,6 +28,31 @@ import { IAuthService } from "./auth.service.interface";
  */
 export class AuthService implements IAuthService {
   constructor(private readonly authRepository: IAuthRepository) { }
+
+
+
+  /* -------------------------------------------------------------------------- */
+  /*                               GET ALL USERS                                  */
+  /* -------------------------------------------------------------------------- */
+  async getAllUsers(
+    query: IQueryParams
+  ): Promise<PaginatedData<IAuthDashboard>> {
+    const result = await this.authRepository.findAll(query);
+
+    if (!result?.data || result.data.length === 0) {
+      throw new ApiError(
+        "No users found",
+        404,
+        ErrorCode.USER_NOT_FOUND
+      );
+    }
+
+    return {
+      ...result,
+      data: result.data.map((u) => this.parseDashboardData(u)),
+    };
+  }
+
 
   async registerUser(data: IRegisterData): Promise<IAuthEntity> {
     const { email, username, password, role } = data;
@@ -69,7 +96,7 @@ export class AuthService implements IAuthService {
       throw new ApiError("User registration failed", 500, ErrorCode.USER_REGISTRATION_FAILED);
     }
 
-    return this.toEntity(createdUser);
+    return this.parsedEntityData(createdUser);
   }
 
   async loginUser(
@@ -99,7 +126,7 @@ export class AuthService implements IAuthService {
     if (!updatedUser) throw new ApiError("User not found after login", 404, ErrorCode.USER_NOT_FOUND);
 
     return {
-      user: this.toEntity(updatedUser),
+      user: this.parsedEntityData(updatedUser),
       ...tokens
     };
   }
@@ -110,7 +137,7 @@ export class AuthService implements IAuthService {
 
     const user = await this.authRepository.removeRefreshTokenById(userId);
     if (!user) throw new ApiError("fail to logout user!", 500, ErrorCode.INTERNAL_SERVER_ERROR);
-    return this.toEntity(user, false);
+    return this.parsedEntityData(user, false);
   }
 
   /* -------------------------------------------------------
@@ -211,7 +238,7 @@ export class AuthService implements IAuthService {
   /* -------------------------------------------------------
         ENTITY TRANSFORMER
   --------------------------------------------------------*/
-  private toEntity(record: any, includeSensitive = false): IAuthEntity {
+  private parsedEntityData(record: any, includeSensitive = false): IAuthEntity {
     const { password, refreshToken, ...safe } = record;
 
     const entity: IAuthEntity = {
@@ -227,5 +254,19 @@ export class AuthService implements IAuthService {
     }
 
     return entity;
+  }
+
+
+  private parseDashboardData(record: any): IAuthDashboard {
+    return {
+      id: record.id,
+      username: record.username,
+      email: record.email,
+      role: record.role,
+      status: record.status,
+      isVerified: record.isVerified,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+    };
   }
 }

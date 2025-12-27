@@ -29,3 +29,15 @@ export interface IAuthUser {
     status: AuthStatus;
     isVerified: boolean;
 }
+
+
+export interface IAuthDashboard {
+    id: string;
+    username: string;        // UNIQUE, login identifier
+    email: string;
+    role: UserRole;
+    status: AuthStatus;
+    isVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}

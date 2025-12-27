@@ -5,6 +5,14 @@ import { Request, Response } from "express";
  * Defines HTTP request handlers for authentication-related operations.
  */
 export interface IAuthController {
+
+    /**
+     * Get all Auth users
+     * @route GET /api/v1/users
+     * @access Private (Admin only)
+     */
+    getAll(req: Request, res: Response): Promise<Response>;
+
     /**
      * Register a new user.
      * @param req - Express request containing registration data.

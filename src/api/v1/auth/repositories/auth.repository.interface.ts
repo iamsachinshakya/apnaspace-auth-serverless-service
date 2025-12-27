@@ -1,3 +1,5 @@
+import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
+import { IAuthDashboard } from "../models/auth.dto";
 import { IAuthEntity } from "../models/auth.entity";
 
 /**
@@ -5,46 +7,56 @@ import { IAuthEntity } from "../models/auth.entity";
  * Defines methods for accessing and manipulating auth-related data in the database.
  */
 export interface IAuthRepository {
+
     /**
-     * Find a user by email.
-     * @param email - The email of the user.
-     * @returns A Promise resolving to the user entity or null if not found.
+    * Find a All auth user.
+    * @param params - params.
+    * @returns A Promise resolving to the auth users with pagination.
+    */
+    findAll(
+        params: IQueryParams
+    ): Promise<PaginatedData<IAuthDashboard>>
+
+    /**
+     * Find a auth user by email.
+     * @param email - The email of the auth user.
+     * @returns A Promise resolving to the auth user entity or null if not found.
      */
     findByEmail(email: string): Promise<IAuthEntity | null>;
 
     /**
-     * Find a user by username.
-     * @param username - The username of the user.
-     * @returns A Promise resolving to the user entity or null if not found.
+     * Find a auth user by username.
+     * @param username - The username of the auth user.
+     * @returns A Promise resolving to the auth user entity or null if not found.
      */
     findByUsername(username: string): Promise<IAuthEntity | null>;
 
     /**
-     * Find a user by ID.
-     * @param id - The unique ID of the user.
-     * @returns A Promise resolving to the user entity or null if not found.
+     * Find a auth user by ID.
+     * @param id - The unique ID of the auth user.
+     * @returns A Promise resolving to the auth user entity or null if not found.
      */
     findById(id: string): Promise<IAuthEntity | null>;
 
     /**
-     * Create a new user.
-     * @param data - The data to create a new user.
-     * @returns A Promise resolving to the created user entity or null.
+     * Create a new auth user.
+     * @param data - The data to create a new auth user.
+     * @returns A Promise resolving to the created auth user entity or null.
      */
     create(data: IAuthEntity): Promise<IAuthEntity | null>;
 
     /**
-     * Remove the refresh token of a user by their ID.
-     * @param id - The unique ID of the user.
-     * @returns A Promise resolving to the updated user entity or null.
+     * Remove the refresh token of a auth user by their ID.
+     * @param id - The unique ID of the auth user.
+     * @returns A Promise resolving to the updated auth user entity or null.
      */
     removeRefreshTokenById(id: string): Promise<IAuthEntity | null>;
 
     /**
-     * Update a user by ID with partial data.
-     * @param id - The unique ID of the user.
-     * @param data - Partial data to update the user.
-     * @returns A Promise resolving to the updated user entity or null.
+     * Update a auth user by ID with partial data.
+     * @param id - The unique ID of the auth user.
+     * @param data - Partial data to update the auth user.
+     * @returns A Promise resolving to the updated auth user entity or null.
      */
     updateById(
         id: string,
@@ -52,9 +64,9 @@ export interface IAuthRepository {
     ): Promise<IAuthEntity | null>;
 
     /**
-     * Delete a user by their ID.
-     * @param id - The unique ID of the user.
-     * @returns A Promise resolving to the deleted user entity or null.
+     * Delete a auth user by their ID.
+     * @param id - The unique ID of the auth user.
+     * @returns A Promise resolving to the deleted auth user entity or null.
      */
     deleteById(id: string): Promise<IAuthEntity | null>;
 }

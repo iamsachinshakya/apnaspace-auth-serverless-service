@@ -1,4 +1,5 @@
-import { IChangePassword, ILoginCredentials, IRegisterData, IResetPassword } from "../models/auth.dto";
+import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
+import { IAuthDashboard, IChangePassword, ILoginCredentials, IRegisterData, IResetPassword } from "../models/auth.dto";
 import { IAuthEntity } from "../models/auth.entity";
 
 /**
@@ -6,6 +7,14 @@ import { IAuthEntity } from "../models/auth.entity";
  * Defines business logic methods for authentication and user management.
  */
 export interface IAuthService {
+
+    /**
+     * Fetch all Auth users with optional pagination, search, and sorting
+     * @param query - Query parameters
+     * @returns Paginated list of Auth users
+     */
+    getAllUsers(query: IQueryParams): Promise<PaginatedData<IAuthDashboard>>;
+
     /**
      * Register a new user.
      * @param data - The registration data including email, username, password, etc.

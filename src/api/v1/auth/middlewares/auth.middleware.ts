@@ -59,6 +59,8 @@ export const authenticate = asyncHandler(
             );
         }
 
+        console.log("decoded =>", decoded)
+
         if (!decoded?.id) {
             throw new ApiError(
                 "Invalid or malformed token payload",

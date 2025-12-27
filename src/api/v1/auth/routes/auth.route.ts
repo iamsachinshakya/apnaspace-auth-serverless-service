@@ -13,6 +13,7 @@ import { AuthRepository } from "../repositories/auth.repository";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorize } from "../../permissions/middlewares/authorize.middleware";
 import { PERMISSIONS } from "../../permissions/constants/permission";
+import { authorizeUserAction } from "../../permissions/middlewares/authorizeUserAction.middleware";
 
 export const authRouter = Router();
 
@@ -20,6 +21,18 @@ export const authRouter = Router();
 const authRepository = new AuthRepository();
 const authService = new AuthService(authRepository);
 const authController = new AuthController(authService);
+
+/**
+ * @route   GET /api/v1/auth/users
+ * @desc    Get all users
+ * @access  Private (Admin only)
+ */
+authRouter.get(
+  "/users",
+  authenticate,
+  authorize(PERMISSIONS.USER.READ),
+  asyncHandler(authController.getAll.bind(authController))
+);
 
 /**
  * @route   GET /api/v1/auth/current-user
@@ -85,6 +98,7 @@ authRouter.post(
   "/users/:id/change-password",
   authenticate,
   authorize(PERMISSIONS.AUTH.CHANGE_PASSWORD),
+  authorizeUserAction(),
   validateBody(changeUserPasswordSchema),
   asyncHandler(authController.changeUserPassword.bind(authController))
 );

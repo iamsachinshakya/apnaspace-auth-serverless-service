@@ -4,6 +4,8 @@ import { IAuthEntity } from "../models/auth.entity";
 import logger from "../../../../app/utils/logger";
 import AuthUser from "../models/auth.model";
 import User from "../../users/models/user.model";
+import { IQueryParams, PaginatedData } from "../../common/models/common.dto";
+import { IAuthDashboard } from "../models/auth.dto";
 
 export class AuthRepository implements IAuthRepository {
 
@@ -23,6 +25,79 @@ export class AuthRepository implements IAuthRepository {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
+    }
+
+    // ---------------- FIND ALL (PAGINATED) ----------------
+    async findAll(
+        params: IQueryParams
+    ): Promise<PaginatedData<IAuthDashboard>> {
+        try {
+            const {
+                page = 1,
+                limit = 10,
+                search = "",
+                sortBy = "createdAt",
+                sortOrder = "desc",
+            } = params;
+
+            const skip = (page - 1) * limit;
+
+            const filter: Record<string, unknown> = {};
+            if (search.trim()) {
+                filter.$or = [
+                    { username: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                ];
+            }
+
+            const allowedSortFields: Array<keyof IAuthDashboard> = [
+                "username",
+                "email",
+                "createdAt",
+                "updatedAt",
+            ];
+            const sortField = allowedSortFields.includes(sortBy as any)
+                ? sortBy
+                : "createdAt";
+            const sort: Record<string, 1 | -1> = {
+                [sortField]: sortOrder === "asc" ? 1 : -1,
+            };
+
+            const [users, total] = await Promise.all([
+                AuthUser.find(filter)
+                    .sort(sort)
+                    .skip(skip)
+                    .limit(limit)
+                    .select(
+                        "username email role status isVerified createdAt updatedAt"
+                    )
+                    .lean(), // ensures plain JS objects
+                AuthUser.countDocuments(filter),
+            ]);
+
+            const parsedData = users.map(this.normalize)
+
+            return {
+                data: parsedData as IAuthDashboard[],
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            };
+        } catch (error) {
+            logger.error("Error fetching auth dashboard users", error);
+            return {
+                data: [],
+                pagination: {
+                    page: params.page ?? 1,
+                    limit: params.limit ?? 10,
+                    total: 0,
+                    totalPages: 0,
+                },
+            };
+        }
     }
 
 
