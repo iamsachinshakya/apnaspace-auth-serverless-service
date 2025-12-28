@@ -62,17 +62,6 @@ authRouter.get(
 );
 
 /**
- * @route   GET /api/v1/auth/current-user
- * @desc    Get details of the logged-in user
- * @access  Private
- */
-authRouter.get(
-  "/me",
-  authenticate,
-  asyncHandler(authController.getCurrentUser.bind(authController))
-);
-
-/**
  * @route POST /api/v1/auth/register
  */
 authRouter.post(
